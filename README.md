@@ -1,7 +1,3 @@
-![GitHub package.json version](https://img.shields.io/github/package-json/v/jackwellerreal/chat?style=for-the-badge)
-![GitHub licence](https://img.shields.io/github/license/jackwellerreal/chat?style=for-the-badge)
-![GitHub stars](https://img.shields.io/github/stars/jackwellerreal/chat?style=for-the-badge)
-
 # Chat v2
 A simple discord clone made using nodejs and electron
 
