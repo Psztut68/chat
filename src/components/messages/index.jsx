@@ -3,19 +3,15 @@ import styles from "./messages.module.css";
 
 import moment from "moment";
 
-import firebaseConfig from "../../firebaseconf.jsx";
 import {
-    getFirestore,
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    query,
-    orderBy,
-    onSnapshot,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { useAuthState } from "react-firebase-hooks/auth";
+    addFriend,
+    channelKey,
+    getServer,
+    getUser,
+    listUsers,
+    subscribeMessages,
+} from "../../localstore.js";
+import { useLocalAuth } from "../../useLocalAuth.jsx";
 
 import { ProfilePicture } from "../profilepicture";
 import { MessageFormat } from "./format/message";
@@ -23,50 +19,14 @@ import { EmbedFormat } from "./format/embed";
 
 import { useChat } from "../../chatcontext";
 
-const database = getFirestore(firebaseConfig);
-const auth = getAuth(firebaseConfig);
-
 export function Messages() {
-    const [user] = useAuthState(auth);
+    const [currentUser] = useLocalAuth();
     const { currentServer, currentChannel } = useChat();
     const [messages, setMessages] = useState({});
     const [usersList, setUsersList] = useState([]);
     const [moreChannelInfo, setMoreChannelInfo] = useState({});
-
-    const fetchMessagesRealTime = (server, channel) => {
-        let collectionRef;
-
-        if (server === "dms") {
-            collectionRef = collection(
-                database,
-                `dms/${[user.uid, channel].sort().join("-")}/messages`
-            );
-        } else {
-            collectionRef = collection(
-                database,
-                `${server}/channels/${channel}`
-            );
-        }
-
-        const orderedQuery = query(collectionRef, orderBy("timestamp", "desc"));
-
-        return onSnapshot(orderedQuery, (snapshot) => {
-            const messages = {};
-            snapshot.forEach((doc) => {
-                if (doc.id !== "typing") {
-                    messages[doc.id] = doc.data();
-                }
-            });
-            setMessages(messages);
-        });
-    };
-
-    const getUsers = async () => {
-        const userCollectionRef = collection(database, `info/users/users`);
-        const userDocs = await getDocs(userCollectionRef);
-        const userData = userDocs.docs.map((doc) => doc.data());
-        setUsersList(userData || []);
-    };
+    const [selectedProfile, setSelectedProfile] = useState(null);
+    const [profileNotice, setProfileNotice] = useState("");
 
     const getMoreChannelInfo = async () => {
         if (!currentServer || !currentChannel) {
@@ -74,15 +34,11 @@ export function Messages() {
         }
 
         if (currentServer === "dms") {
-            const usersRef = collection(database, `info/users/users`);
-            const userDoc = doc(usersRef, currentChannel);
-            const usersData = (await getDoc(userDoc)).data();
+            const usersData = await getUser(currentChannel);
 
             setMoreChannelInfo({ type: "user", data: usersData });
         } else {
-            const serverRef = collection(database, "info/servers/servers");
-            const serverDoc = doc(serverRef, currentServer);
-            const serverData = (await getDoc(serverDoc)).data();
+            const serverData = await getServer(currentServer);
 
             setMoreChannelInfo({
                 type: "channel",
@@ -94,16 +50,21 @@ export function Messages() {
     };
 
     useEffect(() => {
-        const unsubscribe = fetchMessagesRealTime(
-            currentServer,
-            currentChannel
+        if (!currentUser || !currentServer || !currentChannel) {
+            setMessages({});
+            return undefined;
+        }
+
+        const unsubscribe = subscribeMessages(
+            channelKey(currentServer, currentChannel, currentUser.account.uid),
+            setMessages
         );
 
         return () => unsubscribe();
-    }, [currentServer, currentChannel]);
+    }, [currentServer, currentChannel, currentUser]);
 
     useEffect(() => {
-        getUsers();
+        listUsers().then(setUsersList);
     }, []);
 
     useEffect(() => {
@@ -114,11 +75,14 @@ export function Messages() {
         <div className={styles["messages"]} id="messages">
             {Object.keys(messages).map((messageId) => {
                 const message = messages[messageId];
-                const user = usersList.find(
+                const messageUser = usersList.find(
                     (user) => user.account.uid === message.uid
                 );
 
-                const momentObj = moment.unix(message.timestamp.seconds);
+                if (!messageUser) return null;
+
+                const timestamp = message.timestamp.seconds || message.timestamp;
+                const momentObj = moment.unix(timestamp);
                 const today = moment().startOf("day");
                 const yesterday = moment().subtract(1, "days").startOf("day");
 
@@ -135,21 +99,23 @@ export function Messages() {
                     <div key={messageId} className={styles["message"]}>
                         <div className={styles["message-pfp"]}>
                             <ProfilePicture
-                                name={user.profile.displayname}
-                                color={user.profile.color}
+                                name={messageUser.profile.displayname}
+                                color={messageUser.profile.color}
+                                avatar={messageUser.profile.avatar}
+                                size="50px"
+                                onClick={() => setSelectedProfile(messageUser)}
                             />
                         </div>
                         <div>
                             <div className={styles["message-sender"]}>
                                 <span
-                                    style={{
-                                        color: user.profile.color,
-                                    }}
-                                    title={`@${user.profile.displayname}`}
+                                    style={{ color: messageUser.profile.color, cursor: "pointer" }}
+                                    title={`@${messageUser.profile.displayname}`}
+                                    onClick={() => setSelectedProfile(messageUser)}
                                 >
-                                    {user.profile.displayname}
+                                    {messageUser.profile.displayname}
                                 </span>
-                                {user.profile.verified && (
+                                {messageUser.profile.verified && (
                                     <div
                                         className={
                                             styles["message-sender-verified"]
@@ -157,7 +123,7 @@ export function Messages() {
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
-                                            style={{ fill: user.profile.color }}
+                                            style={{ fill: messageUser.profile.color }}
                                             viewBox="0 0 24 24"
                                         >
                                             <title>Verified</title>
@@ -165,7 +131,7 @@ export function Messages() {
                                         </svg>
                                     </div>
                                 )}
-                                {user.account.admin && (
+                                {messageUser.account.admin && (
                                     <div
                                         className={
                                             styles["message-sender-verified"]
@@ -173,7 +139,7 @@ export function Messages() {
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
-                                            style={{ fill: user.profile.color }}
+                                            style={{ fill: messageUser.profile.color }}
                                             viewBox="0 0 640 512"
                                         >
                                             <title>Admin</title>
@@ -235,6 +201,43 @@ export function Messages() {
             ) : (
                 ""
             )}
+            {selectedProfile ? (
+                <div
+                    className={styles["profile-backdrop"]}
+                    onClick={() => setSelectedProfile(null)}
+                >
+                    <section
+                        className={styles["profile-card"]}
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <ProfilePicture
+                            name={selectedProfile.profile.displayname}
+                            color={selectedProfile.profile.color}
+                            avatar={selectedProfile.profile.avatar}
+                            size="96px"
+                        />
+                        <h2>{selectedProfile.profile.displayname}</h2>
+                        <p>@{selectedProfile.account.username}</p>
+                        <p>{selectedProfile.profile.description || "No description yet."}</p>
+                        {currentUser?.account.uid !== selectedProfile.account.uid ? (
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        await addFriend(selectedProfile.account.username);
+                                        setProfileNotice("Friend request sent");
+                                    } catch (error) {
+                                        setProfileNotice(error.message);
+                                    }
+                                }}
+                            >
+                                Add friend
+                            </button>
+                        ) : null}
+                        {profileNotice ? <small>{profileNotice}</small> : null}
+                    </section>
+                </div>
+            ) : null}
         </div>
     );
 }

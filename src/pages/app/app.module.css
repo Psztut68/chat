@@ -1,9 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
-
 * {
     margin: 0;
     padding: 0;
-    font-family: "Poppins", sans-serif;
+    font-family: "Segoe UI", sans-serif;
     font-style: normal;
     box-sizing: border-box;
     color: #ffffff;
@@ -14,7 +12,7 @@ body {
     display: grid;
     grid-template-rows: 24px auto;
     color-scheme: dark;
-    background-color: #313338;
+    background: #1e1f22;
     --webkit-user-select: none;
 }
 
@@ -52,11 +50,17 @@ button {
     cursor: pointer;
 }
 
+button:hover {
+    background-color: #4752c4;
+}
+
 .content {
     display: grid;
     grid-template-columns: auto 1fr auto;
     width: 100%;
     height: calc(100vh - 24px);
+    min-width: 760px;
+    background: #313338;
 }
 
 .sidebar {
@@ -64,11 +68,14 @@ button {
     grid-template-columns: 72px 240px;
     grid-template-rows: auto 53px;
     background-color: #2b2d31;
+    border-right: 1px solid #1e1f22;
 }
 
 .main {
     display: grid;
     height: calc(100vh - 24px);
+    min-width: 0;
+    background: #313338;
 }
 
 .loading {

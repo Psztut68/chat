@@ -1,22 +1,9 @@
 import styles from "./messageformat.module.css";
 import reactStringReplace from "react-string-replace";
 
-import firebaseConfig from "../../../../firebaseconf.jsx";
-import {
-    getFirestore,
-    collection,
-    doc,
-    getDocs,
-    getDoc,
-    query,
-    orderBy,
-    onSnapshot,
-} from "firebase/firestore";
+import { listUsers } from "../../../../localstore.js";
 
 import { useChat } from "../../../../chatcontext.jsx";
-import { format } from "prettier";
-
-const database = getFirestore(firebaseConfig);
 
 export function MessageFormat({ message, server }) {
     const { changeServer, changeChannel } = useChat();
@@ -165,12 +152,7 @@ export function MessageFormat({ message, server }) {
                     key={i}
                     className={styles["message-highlight"]}
                     onClick={async () => {
-                        const userCollectionRef = collection(
-                            database,
-                            `info/users/users`
-                        );
-                        const userDocs = await getDocs(userCollectionRef);
-                        const userData = userDocs.docs.map((doc) => doc.data());
+                        const userData = await listUsers();
 
                         const user = userData.find(
                             (user) => user.account.username === match

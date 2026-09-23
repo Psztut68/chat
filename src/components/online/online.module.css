@@ -2,6 +2,7 @@
     width: 240px;
     padding-top: 20px;
     background-color: #2b2d31;
+    border-left: 1px solid #1e1f22;
 }
 
 .online-title {
@@ -10,6 +11,7 @@
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .online-user {

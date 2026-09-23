@@ -2,10 +2,7 @@ import styles from "./signin.module.css";
 import { useNavigate } from "react-router-dom";
 
 import { MenuBar } from "../../components/menubar/index.jsx";
-
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import firebaseConfig from "../../firebaseconf.jsx";
-const auth = getAuth(firebaseConfig);
+import { signIn } from "../../localstore.js";
 
 export function SignIn() {
     const navigate = useNavigate();
@@ -13,19 +10,12 @@ export function SignIn() {
     const FormComplete = async (e) => {
         e.preventDefault();
 
-        signInWithEmailAndPassword(
-            auth,
-            e.target[0].value + "@example.com",
-            e.target[1].value
-        )
-            .then((userCredential) => {
-                navigate("/app");
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                console.log(errorCode, errorMessage);
-            });
+        try {
+            await signIn(e.target[0].value, e.target[1].value);
+            navigate("/app");
+        } catch (error) {
+            console.error(error.message);
+        }
 
     };
 

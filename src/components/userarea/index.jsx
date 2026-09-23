@@ -2,20 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./userarea.module.css";
 
-import firebaseConfig from "../../firebaseconf.jsx";
-import {
-    getFirestore,
-    doc,
-    collection,
-    getDoc,
-    getDocs,
-    addDoc,
-    setDoc,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-
-const database = getFirestore(firebaseConfig);
-const auth = getAuth(firebaseConfig);
+import { getCurrentUser } from "../../localstore.js";
 
 import { ProfilePicture } from "../profilepicture";
 
@@ -24,11 +11,7 @@ export function UserArea() {
     const [currentUser, setCurrentUser] = useState();
 
     const getUserInfo = async () => {
-        const usersRef = collection(database, `info/users/users`);
-        const userDoc = doc(usersRef, auth.currentUser.uid);
-        const usersData = (await getDoc(userDoc)).data();
-
-        setCurrentUser(usersData);
+        setCurrentUser(await getCurrentUser());
     };
 
     useEffect(() => {
@@ -62,6 +45,8 @@ export function UserArea() {
                             <ProfilePicture
                                 name={currentUser.profile.displayname}
                                 color={currentUser.profile.color}
+                                avatar={currentUser.profile.avatar}
+                                size="32px"
                             />
                         ) : null}
                     </foreignObject>

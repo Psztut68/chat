@@ -1,25 +1,7 @@
 // Imports and packages
 
 const { app, BrowserWindow, shell, ipcMain } = require("electron");
-const fs = require("node:fs");
 const axios = require("axios");
-
-const firebase = require("firebase/compat/app");
-require("firebase/compat/firestore");
-
-// Firebase Config
-
-const config = require("./config.json");
-
-firebase.initializeApp({
-    apiKey: config.firebase.apiKey,
-    authDomain: config.firebase.authDomain,
-    projectId: config.firebase.projectId,
-    storageBucket: config.firebase.storageBucket,
-    messagingSenderId: config.firebase.messagingSenderId,
-    appId: config.firebase.appId,
-});
-const db = firebase.firestore();
 
 let mainWindow;
 let name;
@@ -168,20 +150,7 @@ ipcMain.on("max", () => {
     }
 });
 
-// Make user offline when app is quit
-
-ipcMain.on("close", async () => {
-    try {
-        const onlineRef = db.collection("info").doc("online");
-        await onlineRef.update({
-            people: (await onlineRef.get())
-                .data()
-                .people.filter((user) => user.name !== name),
-        });
-    } catch (error) {
-        console.log(error);
-    }
-
+ipcMain.on("close", () => {
     mainWindow.close();
 });
 

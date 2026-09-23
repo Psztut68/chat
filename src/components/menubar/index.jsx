@@ -1,5 +1,10 @@
 import styles from "./menubar.module.css";
-const { ipcRenderer } = require("electron");
+
+const ipcRenderer = globalThis.electron?.ipcRenderer;
+
+function sendWindowCommand(command) {
+    ipcRenderer?.send(command);
+}
 
 export function MenuBar() {
     return (
@@ -12,7 +17,7 @@ export function MenuBar() {
                     className={styles["taskbar-control"]}
                     id={styles["taskbar-control-min"]}
                     onClick={() => {
-                        ipcRenderer.send("min");
+                        sendWindowCommand("min");
                     }}
                 >
                     <svg
@@ -26,7 +31,7 @@ export function MenuBar() {
                     className={styles["taskbar-control"]}
                     id={styles["taskbar-control-max"]}
                     onClick={() => {
-                        ipcRenderer.send("max");
+                        sendWindowCommand("max");
                     }}
                 >
                     <svg
@@ -40,7 +45,7 @@ export function MenuBar() {
                     className={styles["taskbar-control"]}
                     id={styles["taskbar-control-close"]}
                     onClick={() => {
-                        ipcRenderer.send("close");
+                        sendWindowCommand("close");
                     }}
                 >
                     <svg

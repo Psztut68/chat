@@ -2,7 +2,9 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 8px;
+    padding: 12px 8px;
+    background: #2b2d31;
+    border-right: 1px solid #1e1f22;
     overflow-y: scroll;
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -17,7 +19,7 @@
     width: 100%;
     border-radius: 4px;
     font-size: 20px;
-    margin-bottom: 12px;
+    margin-bottom: 3px;
     cursor: pointer;
 }
 
@@ -37,13 +39,49 @@
     width: 100%;
     font-size: 16px;
     line-height: 28px;
-    padding: 4px 12px;
+    padding: 6px 12px;
+    border-radius: 4px;
 }
 
 .channel-sidebar-item img {
     height: 28px;
     vertical-align: middle;
     margin-right: 8px;
+}
+
+.friend-request,
+.friend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 8px;
+    color: #b5bac1;
+    font-size: 13px;
+}
+
+.friend-request button,
+.remove-friend {
+    height: 24px;
+    padding: 2px 8px;
+    font-size: 12px;
+}
+
+.remove-friend {
+    display: none;
+    margin-left: auto;
+    background: transparent;
+    color: #f23f42;
+}
+
+.channel-sidebar-item:hover .remove-friend {
+    display: inline-block;
+}
+
+.no-friends {
+    padding: 12px;
+    color: #949ba4;
+    font-size: 13px;
 }
 
 .channel-sidebar-user {
@@ -92,4 +130,6 @@
     width: calc(100% + 16px);
     aspect-ratio: 16/9;
     overflow: hidden;
+    border-radius: 6px;
+    background-color: #1e1f22;
 }

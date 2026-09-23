@@ -1,4 +1,5 @@
 import styles from "./app.module.css";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { MenuBar } from "../../components/menubar/index.jsx";
@@ -9,18 +10,30 @@ import { Messages } from "../../components/messages/index.jsx";
 import { NewMessage } from "../../components/newmessage/index.jsx";
 import { Online } from "../../components/online/index.jsx";
 
-import firebaseConfig from "../../firebaseconf.jsx";
-import { getAuth } from "firebase/auth";
-import { useAuthState } from "react-firebase-hooks/auth";
+import { useLocalAuth } from "../../useLocalAuth.jsx";
+import { joinServerByInvite } from "../../localstore.js";
 import { ChatProvider } from "../../chatcontext.jsx";
 
 import loadingImage from "../../assets/icon.png";
 
-const auth = getAuth(firebaseConfig);
-
 export function App() {
     const navigate = useNavigate();
-    const [user, loading, error] = useAuthState(auth);
+    const [user, loading] = useLocalAuth();
+
+    useEffect(() => {
+        if (!loading && !user) navigate("/signin", { replace: true });
+    }, [loading, user, navigate]);
+
+    useEffect(() => {
+        if (!user) return;
+        const invite = new URLSearchParams(window.location.search).get("invite");
+        if (!invite) return;
+        const separator = invite.indexOf(".");
+        if (separator === -1) return;
+        joinServerByInvite(invite.slice(0, separator), invite.slice(separator + 1))
+            .then(() => window.history.replaceState({}, "", "/app"))
+            .catch(() => {});
+    }, [user]);
 
     if (loading) {
         return (
@@ -34,7 +47,7 @@ export function App() {
     }
 
     if (!user) {
-        navigate("/signin");
+        return null;
     } else {
         return (
             <ChatProvider>

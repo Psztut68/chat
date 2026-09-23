@@ -1,64 +1,59 @@
 import { useState, useEffect } from "react";
 import styles from "./channellist.module.css";
 
-import firebaseConfig from "../../firebaseconf.jsx";
 import {
-    getFirestore,
-    doc,
-    collection,
-    getDoc,
-    getDocs,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { useAuthState } from "react-firebase-hooks/auth";
+    acceptFriend,
+    getCurrentUser,
+    getServer,
+    listUsers,
+    removeFriend,
+    subscribeData,
+} from "../../localstore.js";
 
 import { ProfilePicture } from "../profilepicture";
 
 import { useChat } from "../../chatcontext";
 
-const database = getFirestore(firebaseConfig);
-const auth = getAuth(firebaseConfig);
-
 export function ChannelList() {
-    const [user] = useAuthState(auth);
+    const [user, setUser] = useState(null);
     const { currentServer, currentChannel, changeChannel } = useChat();
-    const [currentServerDoc, setCurrentServerDoc] = useState({});
+    const [currentServerDoc, setCurrentServerDoc] = useState(null);
     const [usersList, setUsersList] = useState([]);
-
-    const getServerDoc = async (serverId) => {
-        const serverRef = doc(database, "info/servers/servers", serverId);
-        const serverDoc = await getDoc(serverRef);
-        return serverDoc.data();
-    };
-
-    const getUsers = async (serverId) => {
-        const userCollectionRef = collection(database, `info/users/users`);
-        const userDocs = await getDocs(userCollectionRef);
-        const userData = userDocs.docs.map((doc) => doc.data());
-
-        return userData || [];
-    };
 
     useEffect(() => {
         const fetchData = async () => {
-            const serverData = await getServerDoc(currentServer);
+            const serverData = await getServer(currentServer);
             setCurrentServerDoc(serverData);
         };
         fetchData();
+        const unsubscribe = subscribeData(fetchData);
+        return unsubscribe;
     }, [currentServer]);
 
     useEffect(() => {
+        let active = true;
         const fetchData = async () => {
-            const userData = await getUsers();
-            setUsersList(userData);
+            const [userData, currentUser] = await Promise.all([
+                listUsers(),
+                getCurrentUser(),
+            ]);
+            if (active) {
+                setUsersList(userData);
+                setUser(currentUser);
+            }
         };
         fetchData();
+        const unsubscribe = subscribeData(fetchData);
+        return () => {
+            active = false;
+            unsubscribe();
+        };
     }, []);
 
     return (
         <div className={styles["channel-sidebar"]}>
             <div>
-                {currentServer !== "dms" && currentServerDoc ? (
+                {currentServer !== "dms" && currentServerDoc?.info ? (
                     <>
                         <div
                             className={styles["server-banner"]}
@@ -131,8 +126,19 @@ export function ChannelList() {
                             <h1 id={styles["server-name"]}>Direct Messages</h1>
                         </div>
                         <div id={styles["channels"]}>
-                            {usersList.map((dmUser) => {
-                                if (dmUser.account.uid === user.uid) return;
+                            {user?.account.friendRequests?.incoming?.map((requesterId) => {
+                                const requester = usersList.find((item) => item.account.uid === requesterId);
+                                if (!requester) return null;
+                                return (
+                                    <div className={styles["friend-request"]} key={requesterId}>
+                                        <span>{requester.profile.displayname}</span>
+                                        <button type="button" onClick={() => acceptFriend(requesterId)}>Accept</button>
+                                    </div>
+                                );
+                            })}
+                            {usersList
+                                .filter((dmUser) => user?.account.friends?.includes(dmUser.account.uid))
+                                .map((dmUser) => {
 
                                 return (
                                     <div
@@ -155,12 +161,28 @@ export function ChannelList() {
                                                     dmUser.profile.displayname
                                                 }
                                                 color={dmUser.profile.color}
+                                                avatar={dmUser.profile.avatar}
+                                                size="28px"
                                             />
                                             {dmUser.profile.displayname}
+                                            <button
+                                                type="button"
+                                                className={styles["remove-friend"]}
+                                                aria-label={`Remove ${dmUser.profile.displayname}`}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    removeFriend(dmUser.account.uid);
+                                                }}
+                                            >
+                                                x
+                                            </button>
                                         </span>
                                     </div>
                                 );
                             })}
+                            {user && !user.account.friends?.length && !user.account.friendRequests?.incoming?.length ? (
+                                <p className={styles["no-friends"]}>Add friends in Settings.</p>
+                            ) : null}
                         </div>
                     </>
                 )}

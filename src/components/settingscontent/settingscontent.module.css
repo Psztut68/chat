@@ -75,9 +75,76 @@
 
 
 .settings-main-card-content {
+    display: grid;
+    gap: 14px;
     width: 100%;
     padding: 16px;
     border-radius: 8px;
     background-color: #2b2d31;
     margin-top: 8px;
+}
+
+.settings-main-card-content label {
+    display: grid;
+    gap: 6px;
+    color: #b5bac1;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.settings-main-card-content input,
+.settings-main-card-content textarea {
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 4px;
+    color: #ffffff;
+    background: #1e1f22;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.settings-main-card-content input[type="color"] {
+    width: 72px;
+    padding: 4px;
+}
+
+.settings-main-card-content button {
+    width: fit-content;
+}
+
+.settings-friends {
+    display: grid;
+    gap: 10px;
+    width: 240px;
+    margin: 24px;
+}
+
+.settings-friends h2 {
+    font-size: 16px;
+}
+
+.settings-friends form,
+.friend-row {
+    display: flex;
+    gap: 8px;
+}
+
+.settings-friends input {
+    min-width: 0;
+    width: 100%;
+}
+
+.friend-row {
+    align-items: center;
+    justify-content: space-between;
+    color: #b5bac1;
+    font-size: 13px;
+}
+
+.friend-error {
+    color: #f23f42;
+    font-size: 12px;
 }

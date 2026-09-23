@@ -1,12 +1,4 @@
 {
-    "firebase": {
-        "apiKey": "",
-        "authDomain": "",
-        "projectId": "",
-        "storageBucket": "",
-        "messagingSenderId": "",
-        "appId": ""
-    },
     "tenorAPI": "",
     "profilePicAPI": "",
     "proxy": "",

@@ -134,3 +134,31 @@
     border-radius: 0 !important;
     vertical-align: middle;
 }
+
+.profile-backdrop {
+    position: fixed;
+    inset: 24px 0 0;
+    display: grid;
+    place-items: center;
+    z-index: 30;
+    background: #00000099;
+}
+
+.profile-card {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    width: min(360px, calc(100vw - 32px));
+    padding: 28px;
+    border-radius: 8px;
+    background: #1e1f22;
+    text-align: center;
+}
+
+.profile-card p {
+    color: #b5bac1;
+}
+
+.profile-card small {
+    color: #23a55a;
+}

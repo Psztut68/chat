@@ -28,6 +28,12 @@
     cursor: pointer;
 }
 
+.button-label {
+    color: #b5bac1;
+    font-size: 12px;
+    font-weight: 700;
+}
+
 .message-create-button svg {
     height: 100%;
     cursor: pointer;
@@ -52,7 +58,61 @@
 
 .emoji-picker-div {
     position: absolute;
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(5, 36px);
+    gap: 4px;
+    padding: 8px;
     right: 0;
     bottom: 64px;
+    border-radius: 6px;
+    background: #1e1f22;
+}
+
+.emoji-picker-div button {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: #313338;
+    font-size: 20px;
+}
+
+.embed-editor-backdrop {
+    position: fixed;
+    inset: 24px 0 0;
+    display: grid;
+    place-items: center;
+    z-index: 25;
+    background: #00000099;
+}
+
+.embed-editor {
+    display: grid;
+    gap: 10px;
+    width: min(460px, calc(100vw - 32px));
+    padding: 24px;
+    border-radius: 8px;
+    background: #1e1f22;
+}
+
+.embed-editor input,
+.embed-editor textarea {
+    width: 100%;
+    padding: 10px;
+    border: 0;
+    border-radius: 4px;
+    color: #ffffff;
+    background: #313338;
+    font: inherit;
+    resize: vertical;
+}
+
+.embed-editor input[type="color"] {
+    width: 64px;
+    padding: 4px;
+}
+
+.embed-editor-actions {
+    display: flex;
+    justify-content: end;
+    gap: 8px;
 }

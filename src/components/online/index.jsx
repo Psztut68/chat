@@ -1,115 +1,39 @@
 import { useState, useEffect } from "react";
 import styles from "./online.module.css";
 
-import firebaseConfig from "../../firebaseconf.jsx";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { listUsers, subscribeData } from "../../localstore.js";
 
 import { ProfilePicture } from "../profilepicture";
 
-const database = getFirestore(firebaseConfig);
-
 export function Online() {
-    const [onlineUsers, setOnlineUsers] = useState({});
-
-    const getOnlineUsers = async () => {
-        const onlineUsersRef = doc(database, "info", "online");
-        const onlineUsersDoc = await getDoc(onlineUsersRef);
-        return onlineUsersDoc.data();
-    };
+    const [onlineUsers, setOnlineUsers] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const onlineUsersData = await getOnlineUsers();
-            setOnlineUsers(onlineUsersData);
+            const users = await listUsers();
+            setOnlineUsers(users.map((user) => ({
+                id: user.account.uid,
+                name: user.profile.displayname,
+                color: user.profile.color,
+                avatar: user.profile.avatar,
+                verified: user.profile.verified,
+                status: user.profile.status || "Online",
+            })));
         };
         fetchData();
+        const unsubscribe = subscribeData(fetchData);
+        return unsubscribe;
     }, []);
 
     return (
         <div className={styles["online-sidebar"]}>
             <span className={styles["online-title"]} id="online-title">
-                Online - 0
+                Online - {onlineUsers.length}
             </span>
             <div className={styles["online-list"]} id="online-list">
-                {onlineUsers.people &&
-                    onlineUsers.people.map((user) => (
-                        <div key={user.name} className={styles["online-user"]}>
-                            <svg width="32" height="32" viewBox="0 0 32 32">
-                                <mask id=":r4:" width="32" height="32">
-                                    <circle
-                                        cx="16"
-                                        cy="16"
-                                        r="16"
-                                        fill="white"
-                                    ></circle>
-                                    <rect
-                                        color="black"
-                                        x="19"
-                                        y="19"
-                                        width="16"
-                                        height="16"
-                                        rx="8"
-                                        ry="8"
-                                    ></rect>
-                                </mask>
-                                <foreignObject
-                                    x="0"
-                                    y="0"
-                                    width="32"
-                                    height="32"
-                                    mask="url(#:r4:)"
-                                >
-                                    <ProfilePicture
-                                        name={user.name}
-                                        color={user.color}
-                                    />
-                                </foreignObject>
-                                <svg
-                                    x="14.5"
-                                    y="17"
-                                    width="25"
-                                    height="15"
-                                    viewBox="0 0 25 15"
-                                >
-                                    <mask id=":r5:">
-                                        <rect
-                                            x="7.5"
-                                            y="5"
-                                            width="10"
-                                            height="10"
-                                            rx="5"
-                                            ry="5"
-                                            fill="white"
-                                        ></rect>
-                                        <rect
-                                            x="12.5"
-                                            y="10"
-                                            width="0"
-                                            height="0"
-                                            rx="0"
-                                            ry="0"
-                                            fill="black"
-                                        ></rect>
-                                        <polygon
-                                            points="-2.16506,-2.5 2.16506,0 -2.16506,2.5"
-                                            fill="black"
-                                            transform="scale(0) translate(13.125 10)"
-                                        ></polygon>
-                                        <circle
-                                            fill="black"
-                                            cx="12.5"
-                                            cy="10"
-                                            r="0"
-                                        ></circle>
-                                    </mask>
-                                    <rect
-                                        fill="#3BA55C"
-                                        width="25"
-                                        height="15"
-                                        mask="url(#:r5:)"
-                                    ></rect>
-                                </svg>
-                            </svg>
+                {onlineUsers.map((user) => (
+                        <div key={user.id} className={styles["online-user"]}>
+                            <ProfilePicture name={user.name} color={user.color} avatar={user.avatar} size="32px" />
                             <div>
                                 <p
                                     style={{
